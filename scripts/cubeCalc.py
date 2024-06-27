@@ -3,38 +3,38 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-def calculate_angles(cube_center, cube_size, pov):
-    """Calculates the angles and visibility of the faces of a cube from a given point of view
+def calculate_angles(cuboid_center, cuboid_dims, pov):
+    """Calculates the angles between the point of view and the faces of a cuboid.
 
     Parameters
     ----------
-    cube_center : np.ndarray
-        The center of the cube
-    cube_size : float
-        The size of the cube
-    pov : np.ndarray
-        The point of view
+    cuboid_center : numpy.ndarray
+        The center of the cuboid.
+    cuboid_dims : numpy.ndarray
+        The dimensions of the cuboid.
+    pov : numpy.ndarray
+        The point of view.
 
     Returns
     -------
-    list
-        A list of booleans indicating the visibility of each face
-    list
-        A list of the visible surface areas of each face
-    list
-        A list of the outside angles of each face
-    int
-        The number of visible faces
+    list : numpy.ndarray
+        A list of booleans indicating whether each face is visible.
+    list : numpy.ndarray
+        A list of the visible surface areas of each face.
+    list : numpy.ndarray
+        A list of the outside angles of each face.
+    int : int
+        The number of visible faces.
     """
 
-    half_size = cube_size / 2
+    half_dims = cuboid_dims / 2
     face_centers = {
-        'front': np.array([cube_center[0], cube_center[1], cube_center[2] + half_size]),
-        'back': np.array([cube_center[0], cube_center[1], cube_center[2] - half_size]),
-        'left': np.array([cube_center[0] - half_size, cube_center[1], cube_center[2]]),
-        'right': np.array([cube_center[0] + half_size, cube_center[1], cube_center[2]]),
-        'top': np.array([cube_center[0], cube_center[1] + half_size, cube_center[2]]),
-        'bottom': np.array([cube_center[0], cube_center[1] - half_size, cube_center[2]])
+        'front': np.array([cuboid_center[0], cuboid_center[1], cuboid_center[2] + half_dims[2]]),
+        'back': np.array([cuboid_center[0], cuboid_center[1], cuboid_center[2] - half_dims[2]]),
+        'left': np.array([cuboid_center[0] - half_dims[0], cuboid_center[1], cuboid_center[2]]),
+        'right': np.array([cuboid_center[0] + half_dims[0], cuboid_center[1], cuboid_center[2]]),
+        'top': np.array([cuboid_center[0], cuboid_center[1] + half_dims[1], cuboid_center[2]]),
+        'bottom': np.array([cuboid_center[0], cuboid_center[1] - half_dims[1], cuboid_center[2]])
     }
     
     face_normals = {
@@ -52,15 +52,21 @@ def calculate_angles(cube_center, cube_size, pov):
 
     for face, center in face_centers.items():
         pov_to_face = center - pov
-        pov_to_face_normalized = pov_to_face / np.linalg.norm(pov_to_face)
+        pov_to_face_normalised = pov_to_face / np.linalg.norm(pov_to_face)
         face_normal = face_normals[face]
-        dot_product = np.dot(pov_to_face_normalized, face_normal)
+        dot_product = np.dot(pov_to_face_normalised, face_normal)
         visible = dot_product < 0
         visibilities.append(visible)
         if visible:
             incidence_angle = np.arccos(-dot_product)
             outside_angle = np.degrees(np.pi - incidence_angle)
-            visible_surface_area = np.cos(incidence_angle) * cube_size**2
+            if face in ['front', 'back']:
+                face_area = cuboid_dims[0] * cuboid_dims[1]
+            elif face in ['left', 'right']:
+                face_area = cuboid_dims[1] * cuboid_dims[2]
+            else:
+                face_area = cuboid_dims[0] * cuboid_dims[2]
+            visible_surface_area = np.cos(incidence_angle) * face_area
         else:
             outside_angle = "Not Visible"
             visible_surface_area = "Not Visible"
@@ -71,21 +77,21 @@ def calculate_angles(cube_center, cube_size, pov):
     return visibilities, visible_surface_areas, outside_angles, num_visible_faces
 
 def generate_view_points(radius, step):
-    """Generates view points on a sphere
+    """Generates view points on a sphere.
 
     Parameters
     ----------
     radius : float
-        The radius of the sphere
-    step : float
-        The step size for generating view points
+        The radius of the sphere.
+    step : int
+        The step size in degrees.
 
     Returns
     -------
-    np.ndarray
-        An array of polar coordinates
-    np.ndarray
-        An array of view points
+    numpy.ndarray
+        The polar coordinates of the view points.
+    numpy.ndarray
+        The Cartesian coordinates of the view points.
     """
 
     phi = np.arange(0, 181, step)
@@ -101,31 +107,31 @@ def generate_view_points(radius, step):
 
     return np.vstack((phi, theta)).T, np.vstack((x, y, z)).T
 
-def test_angles(cube_center, cube_size, radius, step):
-    """Tests the angles and visibility of the faces of a cube from different points of view
+def test_angles(cuboid_center, cuboid_dims, radius, step):
+    """Tests the angles and visibility of the faces of a cube from different points of view.
 
     Parameters
     ----------
-    cube_center : np.ndarray
-        The center of the cube
-    cube_size : float
-        The size of the cube
+    cuboid_center : numpy.ndarray
+        The center of the cuboid.
+    cuboid_dims : numpy.ndarray
+        The dimensions of the cuboid.
     radius : float
-        The radius of the sphere
-    step : float
-        The step size for generating view points
+        The radius of the sphere.
+    step : int
+        The step size in degrees.
 
     Returns
     -------
-    pd.DataFrame
-        A DataFrame containing the results of the tests
+    pandas.DataFrame
+        A DataFrame containing the visibility index for each view point.
     """
 
     polar_points, view_points = generate_view_points(radius, step)
     results = []
 
     for idx, pov in enumerate(view_points):
-        visibilities, visible_surface_areas, outside_angles, num_visible_faces = calculate_angles(cube_center, cube_size, pov)
+        visibilities, visible_surface_areas, outside_angles, num_visible_faces = calculate_angles(cuboid_center, cuboid_dims, pov)
         total_visible_surface_area = sum(area if isinstance(area, (int, float)) else 0 for area in visible_surface_areas)
         results.append([polar_points[idx][0], polar_points[idx][1], total_visible_surface_area, num_visible_faces] + visible_surface_areas + outside_angles)
 
@@ -135,23 +141,23 @@ def test_angles(cube_center, cube_size, radius, step):
                'Top_Outside_Angle', 'Bottom_Outside_Angle']
     df = pd.DataFrame(results, columns=columns)
     
-    df['Normalized_Visible_Surface_Area'] = df['Total_Visible_Surface_Area'] / df['Total_Visible_Surface_Area'].max()
-    df['Normalized_Num_Visible_Faces'] = df['Num_Visible_Faces'] / 6
-    df['Visibility_Index'] = df['Normalized_Visible_Surface_Area'] + df['Normalized_Num_Visible_Faces']
+    df['Normalised_Visible_Surface_Area'] = df['Total_Visible_Surface_Area'] / df['Total_Visible_Surface_Area'].max()
+    df['Normalised_Num_Visible_Faces'] = df['Num_Visible_Faces'] / 6
+    df['Visibility_Index'] = df['Normalised_Visible_Surface_Area'] + df['Normalised_Num_Visible_Faces']
     
     return df
 
-def visualize_results(df, output_file):
-    """Visualizes the results of the tests
+def visualise_results(df, output_file):
+    """Visualises the view points with the maximum visibility index.
 
     Parameters
     ----------
-    df : pd.DataFrame
-        A DataFrame containing the results of the tests
+    df : pandas.DataFrame
+        The DataFrame containing the visibility index for each view point.
     output_file : str
-        The output file for the visualization
+        - The output file for the visualisation.
     """
-
+    
     fig = plt.figure(figsize=(16, 8))
     
     ax1 = fig.add_subplot(121, projection='polar')
@@ -176,25 +182,27 @@ def visualize_results(df, output_file):
     plt.show()
 
 def main():
-    # Parse command line arguments
-    cube_center = np.array([0, 0, 0])
-    cube_size = 2
+    # Define the cuboid and sphere parameters
+    cuboid_center = np.array([0, 0, 0])
+    cuboid_dims = np.array([2, 2, 2])
     radius = 10
     step = 5
 
-    results_df = test_angles(cube_center, cube_size, radius, step)
+    # Test the angles and visibility of the faces of the cuboid
+    results_df = test_angles(cuboid_center, cuboid_dims, radius, step)
 
-    # Save results to a CSV file
+    # Save the results to a CSV file
     csv_file = 'output.csv'
     results_df.to_csv(csv_file, index=False)
 
+    # Visualise the results
     image_file = 'output.png'
-    visualize_results(results_df, image_file)
+    visualise_results(results_df, image_file)
 
-    # Print isolated view points with maximum visibility index
+    # Print the view points with the maximum visibility index
     max_visibility_index = results_df['Visibility_Index'].max()
     isolated_view_points = results_df[results_df['Visibility_Index'] == max_visibility_index]
     print(isolated_view_points)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

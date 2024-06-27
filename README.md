@@ -6,7 +6,7 @@ Keycube performance study against Shoulder Surfing Attacks (SSA)
 
 - File -> [scripts/proj3d](scripts/proj3d.py)
 
-This script provides tools for projecting 3D points onto a 2D screen using either orthographic or perspective projection. It also includes visualization of a 3D cube in both 3D and 2D views, and calculations of the percentage of visible surface area and object coverage in the viewport.
+This script provides tools for projecting 3D points onto a 2D screen using either orthographic or perspective projection. It also includes visualisation of a 3D cube in both 3D and 2D views, and calculations of the percentage of visible surface area and object coverage in the viewport.
 
 More information can be found using the following [link](https://skannai.medium.com/projecting-3d-points-into-a-2d-screen-58db65609f24).
 
@@ -14,7 +14,7 @@ More information can be found using the following [link](https://skannai.medium.
 
 - File -> [scripts/cubeCalc](scripts/cubeCalc.py)
 
-This project provides a comprehensive analysis of the visibility and angles of the faces of a cube from various points of view. It includes generating view points on a sphere, calculating visibility, and visualizing the results.
+This project provides a comprehensive analysis of the visibility and angles of the faces of a cube from various points of view. It includes generating view points on a sphere, calculating visibility, and visualising the results.
 
 ## Table of Contents
 
@@ -28,7 +28,7 @@ This project provides a comprehensive analysis of the visibility and angles of t
 
 ## Introduction
 
-This script calculates the visibility and angles of the faces of a cube from a given point of view and visualizes the results. It generates view points on a sphere around the cube and evaluates which faces are visible from each view point.
+This script calculates the visibility and angles of the faces of a cube from a given point of view and visualises the results. It generates view points on a sphere around the cube and evaluates which faces are visible from each view point.
 
 ## Requirements
 
@@ -55,25 +55,29 @@ python scripts/cubeCalc.py
 
 ## Functions
 
-### `calculate_angles(cube_center, cube_size, pov)`
+### `calculate_angles(cuboid_center, cuboid_dims, pov)`
 
-Calculates the angles and visibility of the faces of a cube from a given point of view.
+Calculates the angles between the point of view and the faces of a cuboid.
 
 **Parameters:**
 
-- `cube_center` : np.ndarray
-  - The center of the cube.
-- `cube_size` : float
-  - The size of the cube.
-- `pov` : np.ndarray
+- `cuboid_center`: numpy.ndarray
+  - The center of the cuboid.
+- `cuboid_dims`: numpy.ndarray
+  - The dimensions of the cuboid.
+- `pov`: numpy.ndarray
   - The point of view.
 
 **Returns:**
 
-- `list`: A list of booleans indicating the visibility of each face.
-- `list`: A list of the visible surface areas of each face.
-- `list`: A list of the outside angles of each face.
-- `int`: The number of visible faces.
+- `list`: numpy.ndarray
+  - A list of booleans indicating whether each face is visible.
+- `list`: numpy.ndarray
+  - A list of the visible surface areas of each face.
+- `list`: numpy.ndarray
+  - A list of the outside angles of each face.
+- `int`: int
+  - The number of visible faces.
 
 ### `generate_view_points(radius, step)`
 
@@ -84,58 +88,54 @@ Generates view points on a sphere.
 - `radius` : float
   - The radius of the sphere.
 - `step` : float
-  - The step size for generating view points.
+  - The step size in degrees.
 
 **Returns:**
 
-- `np.ndarray`: An array of polar coordinates.
-- `np.ndarray`: An array of view points.
+- `np.ndarray`: The polar coordinates of the view points.
+- `np.ndarray`: The Cartesian coordinates of the view points.
 
-### `test_angles(cube_center, cube_size, radius, step)`
+### `test_angles(cuboid_center, cuboid_dims, radius, step)`
 
 Tests the angles and visibility of the faces of a cube from different points of view.
 
 **Parameters:**
 
-- `cube_center` : np.ndarray
-  - The center of the cube.
-- `cube_size` : float
-  - The size of the cube.
-- `radius` : float
+- `cuboid_center`: numpy.ndarray
+  - The center of the cuboid.
+- `cuboid_dims`: numpy.ndarray
+  - The dimensions of the cuboid.
+- `radius`: float
   - The radius of the sphere.
-- `step` : float
-  - The step size for generating view points.
+- `step`: int
+  - The step size in degrees.
 
 **Returns:**
 
-- `pd.DataFrame`: A DataFrame containing the results of the tests.
+- `pd.DataFrame`: A DataFrame containing the visibility index for each view point.
 
-### `visualize_results(df, output_file)`
+### `visualise_results(df, output_file)`
 
-Visualizes the results of the tests.
+Visualises the view points with the maximum visibility index.
 
 **Parameters:**
 
 - `df` : pd.DataFrame
-  - A DataFrame containing the results of the tests.
+  - The DataFrame containing the visibility index for each view point.
 - `output_file` : str
-  - The output file for the visualization.
+  - The output file for the visualisation.
 
 ## Examples
 
 To run the main analysis and generate the results:
 
 ```python
-cube_center = np.array([0, 0, 0])
-cube_size = 2
-radius = 10
-step = 5
-
-results_df = test_angles(cube_center, cube_size, radius, step)
-results_df.to_csv('output.csv', index=False)
-visualize_results(results_df, 'output.png')
+  cuboid_center = np.array([0, 0, 0])
+  cuboid_dims = np.array([2, 2, 2])
+  radius = 10
+  step = 5
 ```
 
 ## Results
 
-The results include a CSV file `output.csv` containing the visibility and angle calculations, and a visualization saved as `output.png`. The visualization shows the view points with maximum visibility index on a polar and 3D plot.
+The results include a CSV file `output.csv` containing the visibility and angle calculations, and a visualisation saved as `output.png`. The visualisation shows the view points with maximum visibility index on a polar and 3D plot.
